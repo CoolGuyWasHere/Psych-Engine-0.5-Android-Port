@@ -177,7 +177,6 @@ class PlayState extends MusicBeatState
 
 	var botplaySine:Float = 0;
 	var botplayTxt:FlxText;
-	var idontrblxTxt:FlxText;
 
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
@@ -1005,8 +1004,6 @@ class PlayState extends MusicBeatState
 		iconP2.alpha = ClientPrefs.healthBarAlpha;
 		add(iconP2);
 		reloadHealthBarColors();
-		
-		add(scoreTxt);
 
 		scoreTxt = new FlxText(0, healthBarBG.y + 36, FlxG.width, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -1015,7 +1012,7 @@ class PlayState extends MusicBeatState
 		scoreTxt.visible = !ClientPrefs.hideHud;
 		add(scoreTxt);
 
-		botplayTxt = new FlxText(400, timeBarBG.y + 55, FlxG.width - 800, "WTF SEX?1!1", 32);
+		botplayTxt = new FlxText(400, timeBarBG.y + 55, FlxG.width - 800, "WTF SEX?1?1", 32);
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
 		botplayTxt.borderSize = 1.25;
@@ -1024,12 +1021,6 @@ class PlayState extends MusicBeatState
 		if(ClientPrefs.downScroll) {
 			botplayTxt.y = timeBarBG.y - 78;
 		}
-
-		idontrblxTxt = new FlxText(876, 648, 348);
-        idontrblxTxt.text = "anjay alok";
-        idontrblxTxt.setFormat(Paths.font("vcr.ttf"), 30, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
-        idontrblxTxt.scrollFactor.set();
-        add(idontrblxTxt);
 
 		strumLineNotes.cameras = [camHUD];
 		grpNoteSplashes.cameras = [camHUD];
@@ -1044,7 +1035,6 @@ class PlayState extends MusicBeatState
 		timeBarBG.cameras = [camHUD];
 		timeTxt.cameras = [camHUD];
 		doof.cameras = [camHUD];
-		idontrblxTxt.cameras = [camHUD];
 
 		#if mobileC
 			mcontrols = new Mobilecontrols();
@@ -1312,53 +1302,18 @@ class PlayState extends MusicBeatState
 		char.y += char.positionArray[1];
 	}
 	
-	public function videoBG(name:String):Void { //this shit made by sirox
-		var existsFile:Bool = false;
-		var formattedPath:String = #if MODS_ALLOWED Paths.modFolders('videos/' + name + '.webm'); #else ''; #end
-		#if sys
-		if(FileSystem.exists(formattedPath)) {
-			existsFile = true;
-		}
-		#end
-		
-		if(!existsFile) {
-			formattedPath = Paths.video(name);
-			if(FileSystem.exists(formattedPath)) {
-				existsFile = true;
-			}
-		}
-		if(existsFile) {
-			var video = new WebmPlayerS(formattedPath, true);
-            video.startcallback = () -> {
-            	add(video);
-            	remove(dad);
-                remove(boyfriend);
-                remove(gf);
-                add(dad);
-                add(boyfriend);
-                add(gf);
-            }
-            video.setGraphicSize(FlxG.width);
-            video.updateHitbox();
-            video.play();
-		} else {
-			FlxG.log.warn('Couldnt find video file: ' + formattedPath);
-		}
-		return;
-	}
-	
 	public function startVideo(name:String):Void {
 		var foundFile:Bool = false;
-		var fileName:String = #if MODS_ALLOWED Paths.modFolders('videos/' + name + '.webm'); #else ''; #end
+		var fileName:String = 'mods/videos/' + name + '.html';
 		#if sys
-		if(FileSystem.exists(fileName)) {
+		if(FileSystem.exists(Main.getDataPath + fileName)) {
 			foundFile = true;
 		}
 		#end
 
 		if(!foundFile) {
 			fileName = Paths.video(name);
-			if(FileSystem.exists(fileName)) {
+			if(FileSystem.exists(Main.getDataPath + fileName)) {
 				foundFile = true;
 			}
 		}
@@ -1371,20 +1326,16 @@ class PlayState extends MusicBeatState
 			bg.cameras = [camHUD];
 			add(bg);
 
-			var video = new WebmPlayerS(fileName, true);
-            video.endcallback = () -> {
-                remove(video);
-                remove(bg);
-                if(endingSong) {
-                    endSong();
-                } else {
-                    startCountdown();
-                }
-            }
-            video.setGraphicSize(FlxG.width);
-            video.updateHitbox();
-            add(video);
-            video.play();
+			var video:BrowserVideoPlayer = new BrowserVideoPlayer(fileName);
+                        (video).finishCallback = function() 
+                        {
+                                remove(bg);
+				if(endingSong) {
+					endSong();
+				} else {
+					startCountdown();
+				}
+                        }
 			return;
 		} else {
 			FlxG.log.warn('Couldnt find video file: ' + fileName);
